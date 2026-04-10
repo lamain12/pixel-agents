@@ -9,16 +9,16 @@ PixelOps is a desktop app (Electron + React + PixiJS) that monitors running Clau
 - **Electron** for the desktop shell (main process in `electron/`, renderer in `src/`)
 - **React 18** with plain JavaScript (no TypeScript)
 - **PixiJS v8** with `@pixi/react` for the pixel art canvas
-- **Zustand** for state management
+- **Zustand** for state management (with persist middleware for settings)
 - **Vite 5** as the dev server and bundler
-- **chokidar** for file system watching
+- **chokidar v3** for file system watching (v3 for CommonJS compat)
 - **Plain CSS** for styling (no Tailwind or CSS frameworks)
 
 ## Key Architecture
 
 ### Two-process model (Electron)
-- `electron/main.js` — main process. Creates window, starts session watcher, handles IPC, manages tray.
-- `electron/preload.js` — bridges main↔renderer via `contextBridge`.
+- `electron/main.js` — main process. Creates window, starts session watcher, handles IPC, manages tray and notifications.
+- `electron/preload.js` — bridges main<>renderer via `contextBridge`.
 - `src/` — renderer process. React app with PixiJS canvas.
 
 ### Session discovery
@@ -31,6 +31,18 @@ PixelOps is a desktop app (Electron + React + PixiJS) that monitors running Clau
 - **Session file** (`~/.claude/sessions/{pid}.json`): `{"pid", "sessionId", "cwd", "startedAt", "kind", "entrypoint"}`
 - **JSONL entries**: each line has `type` (permission-mode, file-history-snapshot, user, assistant), `message`, `sessionId`
 - Assistant messages have `message.stop_reason` and `message.usage` (token counts)
+
+### Notification system
+- Priority queue: errors > waiting for input > completions
+- Desktop notifications via Electron Notification API
+- Click-to-focus terminal via AppleScript (macOS)
+- Optional webhook push to Slack/Discord/Telegram
+
+### Pixel art scene
+- PixiJS v8 canvas with @pixi/react
+- `extend()` to register pixi components, lowercase JSX tags (`<pixiSprite>`, `<pixiContainer>`)
+- Spritesheet animation: 4 frames per state (128x32 PNGs), frame switching via interval
+- Character positions mapped to predefined desk slots in the command center background
 
 ## Coding Conventions
 
@@ -52,16 +64,37 @@ pnpm build        # full production build
 ## File Layout
 
 ```
-electron/           # Main process code
-  main.js           # Entry point, window + watcher setup
-  preload.js        # IPC bridge
+electron/               # Main process code
+  main.js               # Entry: window + tray + watcher + notifications
+  preload.js            # IPC bridge
+  tray.js               # System tray with color-coded status
+  notifications.js      # Priority notification engine
+  focus.js              # Click-to-focus terminal (AppleScript)
+  webhooks.js           # Slack/Discord/Telegram webhook push
   sessions/
-    models.js       # Status constants, SessionState shape
-    discovery.js    # Reads ~/.claude/sessions/, checks PID liveness
-    parser.js       # Tails JSONL files, determines session status
-    watcher.js      # chokidar watcher, emits IPC events
-src/                # Renderer process (React)
-  main.jsx          # React entry
-  App.jsx           # Root component
-  App.css           # Global styles
+    models.js           # Status constants, SessionState shape
+    discovery.js        # Reads ~/.claude/sessions/, checks PID liveness
+    parser.js           # Tails JSONL files, determines session status
+    watcher.js          # chokidar watcher, emits IPC events
+src/                    # Renderer process (React)
+  main.jsx              # React entry
+  App.jsx               # Root: header + scene/list toggle + settings
+  App.css               # Global styles
+  types/session.js      # Status constants, colors, formatting
+  stores/
+    sessionStore.js     # Session state with priority sorting
+    settingsStore.js    # Persisted settings (notifications, webhooks)
+  hooks/
+    useSessionEvents.js # IPC listener for session events
+  components/
+    PixelScene/         # PixiJS command center
+      PixelScene.jsx    # Canvas with background + characters
+      Character.jsx     # Animated sprite per session
+      Tooltip.jsx       # Hover tooltip overlay
+      useCharacterPositions.js
+    Settings/           # Settings overlay
+      Settings.jsx      # Toggles for notifications, webhook config
+assets/
+  icons/                # Tray icons (green/yellow/red/gray)
+  sprites/              # Spritesheets + command center background
 ```

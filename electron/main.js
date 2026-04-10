@@ -4,6 +4,7 @@ const { discoverSessions } = require('./sessions/discovery');
 const { SessionWatcher } = require('./sessions/watcher');
 const { setupTray, updateTray } = require('./tray');
 const { NotificationEngine } = require('./notifications');
+const { setupWebhookIPC, sendWebhook } = require('./webhooks');
 
 let mainWindow = null;
 let watcher = null;
@@ -68,6 +69,7 @@ function startSessionWatcher() {
 app.whenReady().then(() => {
   createWindow();
   tray = setupTray(mainWindow);
+  setupWebhookIPC();
   startSessionWatcher();
 
   app.on('activate', () => {

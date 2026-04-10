@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import useSessionStore from './stores/sessionStore.js';
 import useSessionEvents from './hooks/useSessionEvents.js';
 import { statusLabel, statusColor, formatDuration } from './types/session.js';
+import PixelScene from './components/PixelScene/PixelScene.jsx';
+import Settings from './components/Settings/Settings.jsx';
 
 function SessionCard({ session }) {
   const color = statusColor(session.status);
@@ -25,8 +27,32 @@ function SessionCard({ session }) {
   );
 }
 
+function SessionList() {
+  const getSortedSessions = useSessionStore((s) => s.getSortedSessions);
+  const sessions = getSortedSessions();
+
+  if (sessions.length === 0) {
+    return (
+      <div className="empty-state">
+        <p>No active Claude sessions detected</p>
+        <p className="empty-hint">Start a Claude Code session and it will appear here</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="session-list">
+      {sessions.map((session) => (
+        <SessionCard key={session.info.sessionId} session={session} />
+      ))}
+    </div>
+  );
+}
+
 function App() {
   useSessionEvents();
+  const [view, setView] = useState('scene');
+  const [showSettings, setShowSettings] = useState(false);
   const getSortedSessions = useSessionStore((s) => s.getSortedSessions);
   const sessions = getSortedSessions();
 
@@ -34,20 +60,33 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>PixelOps</h1>
-        <span className="session-count">{sessions.length} session{sessions.length !== 1 ? 's' : ''}</span>
-      </header>
-      <div className="session-list">
-        {sessions.length === 0 ? (
-          <div className="empty-state">
-            <p>No active Claude sessions detected</p>
-            <p className="empty-hint">Start a Claude Code session and it will appear here</p>
+        <div className="header-right">
+          <span className="session-count">
+            {sessions.length} session{sessions.length !== 1 ? 's' : ''}
+          </span>
+          <div className="view-toggle">
+            <button
+              className={view === 'scene' ? 'active' : ''}
+              onClick={() => setView('scene')}
+            >
+              Scene
+            </button>
+            <button
+              className={view === 'list' ? 'active' : ''}
+              onClick={() => setView('list')}
+            >
+              List
+            </button>
           </div>
-        ) : (
-          sessions.map((session) => (
-            <SessionCard key={session.info.sessionId} session={session} />
-          ))
-        )}
-      </div>
+          <button className="settings-btn" onClick={() => setShowSettings(true)}>
+            Settings
+          </button>
+        </div>
+      </header>
+      <main className="app-content">
+        {view === 'scene' ? <PixelScene /> : <SessionList />}
+      </main>
+      {showSettings && <Settings onClose={() => setShowSettings(false)} />}
     </div>
   );
 }

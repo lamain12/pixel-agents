@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onSessionEnded: (callback) => {
     ipcRenderer.on('session-ended', (_event, data) => callback(data));
   },
+  testWebhook: (url) => ipcRenderer.invoke('test-webhook', url),
+  getSettings: () => ipcRenderer.invoke('get-settings'),
   removeAllListeners: (channel) => {
     ipcRenderer.removeAllListeners(channel);
   },

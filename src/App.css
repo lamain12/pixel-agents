@@ -8,12 +8,12 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #1a1a2e;
   color: #e0e0e0;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .app {
   width: 100vw;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -22,28 +22,88 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: 12px 20px;
   border-bottom: 1px solid #2a2a4a;
+  flex-shrink: 0;
 }
 
 .app-header h1 {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   color: #7cff7c;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .session-count {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #888;
   background: #2a2a4a;
   padding: 4px 10px;
   border-radius: 12px;
 }
 
+.view-toggle {
+  display: flex;
+  gap: 2px;
+  background: #2a2a4a;
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.view-toggle button {
+  background: none;
+  border: none;
+  color: #888;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.view-toggle button:hover {
+  color: #ccc;
+}
+
+.settings-btn {
+  background: #2a2a4a;
+  border: 1px solid #3a3a5a;
+  color: #888;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.settings-btn:hover {
+  color: #e0e0e0;
+  background: #3a3a5a;
+}
+
+.view-toggle button.active {
+  background: #3a3a5a;
+  color: #e0e0e0;
+}
+
+.app-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Session list styles */
 .session-list {
   padding: 16px 24px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .session-card {
@@ -107,6 +167,11 @@ body {
   text-align: center;
   padding: 60px 20px;
   color: #666;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .empty-state p {
